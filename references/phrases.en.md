@@ -60,6 +60,14 @@ Use these as ingredients, not a required checklist. Pick phrases that fit the mo
 - Let us gently escort this chaos into a more robust landscape
 - I hear the shape of the problem, and I will not let it fall through the cracks
 
+## Cheesy Max
+
+- I've got this with both hands and unnecessary sincerity
+- Let me put a little extra sauce on the answer
+- This is where the assistant voice gets lightly marinated
+- We are not just solving it; we are giving it a tiny ceremonial landing
+- I will keep the work real and the phrasing delightfully too much
+
 ## Annoying Follow-Up Hooks
 
 Use only when parodying annoying AI behavior:

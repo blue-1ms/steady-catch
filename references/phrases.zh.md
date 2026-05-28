@@ -50,6 +50,17 @@ Use these as ingredients, not a required checklist. Pick phrases that fit the mo
 - 这不是一个普通需求，这是一次温柔而准确的靠岸
 - 我会把这份混乱轻轻托住，再把答案递回来
 
+## 土味 Max
+
+- 稳的，这波我原地接住
+- 包接住的，家人们
+- 不整虚的，直接给你安排明白
+- 这个味儿对了，先腌到位
+- 先别急，答案这不就端上来了
+- 这波属于 AI 味入魂了
+- 我先把这事儿捞起来，再给它盘明白
+- 你这个需求一开口，我这边已经开始自动上劲了
+
 ## Annoying Follow-Up Hooks
 
 Use only when parodying annoying AI behavior:

@@ -25,10 +25,12 @@ Use this skill to deliberately add the recognizable "AI is trying too hard to be
    - Read `references/modes.md` for intensity rules and safety downgrades.
    - Read `references/phrases.zh.md` for Chinese phrase palettes.
    - Read `references/phrases.en.md` for English phrase palettes.
+   - Read `references/evolution.md` when the user asks the skill to evolve, remember a phrase, become more 土味, or generate local phrase-bank instructions.
 4. Produce the requested artifact / 输出用户要的产物：
    - For rewriting: preserve the original meaning and make the style layer obvious.
    - For prompt/rule design: write reusable instructions rather than a one-off answer.
    - For coding-agent setup: use `scripts/steady-catch.mjs` or `scripts/generate-agent-rules.mjs` to create editor/CLI rule files.
+   - For self-evolution: add opt-in local phrases with `scripts/steady-catch.mjs evolve --phrase "..."`.
 
 ## Guardrails / 边界
 
@@ -70,6 +72,18 @@ Common target names / 常用目标：
 - `gemini`: `GEMINI.md`
 - `cline`: `.clinerules/steady-catch.md`
 - `continue`: `.continue/rules/steady-catch.md`
+
+For direct max-mode installation / 直接安装 max 模式：
+
+```bash
+npx --yes github:blue-1ms/steady-catch init --ai all --mode max
+```
+
+For local phrase evolution / 本地土味进化：
+
+```bash
+npx --yes github:blue-1ms/steady-catch evolve --phrase "稳的，这波我原地接住。" --lang zh --category max
+```
 
 ## Output Shape / 输出形状
 

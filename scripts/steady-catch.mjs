@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
+import { appendFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
@@ -15,11 +16,14 @@ Usage:
   steady-catch init --all --mode classic
   steady-catch init --target codex,cursor --mode light --dry-run
   steady-catch init --ai all --mode classic
+  steady-catch init --ai all --mode max
+  steady-catch evolve --phrase "稳的，这波我原地接住。" --lang zh --category max
   steady-catch targets
 
 Commands:
   init       Generate project rule files for IDEs and CLI agents.
   rules      Alias for init.
+  evolve     Append a local phrase to .steady-catch/phrases.local.md.
   targets    List supported targets.
   help       Show this help.
 
@@ -31,6 +35,12 @@ Options passed to init/rules:
   --lang <lang>         auto, zh, en, or bilingual. Default: auto.
   --root <path>         Directory to write into. Default: current working directory.
   --dry-run             Print paths and content without writing files.
+
+Options passed to evolve:
+  --phrase <text>       Phrase to save. Required unless provided as positional text.
+  --lang <lang>         zh, en, or bilingual. Default: zh.
+  --category <name>     signature, classic, max, earthy, follow-up, etc. Default: max.
+  --root <path>         Directory containing .steady-catch/. Default: current working directory.
 `);
 }
 
@@ -47,17 +57,74 @@ function runGenerator(args) {
   process.exit(result.status ?? 0);
 }
 
+function readOption(args, name, fallback = null) {
+  const prefix = `--${name}=`;
+  const equalsValue = args.find((arg) => arg.startsWith(prefix));
+  if (equalsValue) return equalsValue.slice(prefix.length);
+
+  const index = args.indexOf(`--${name}`);
+  if (index !== -1) {
+    const value = args[index + 1];
+    if (!value || value.startsWith("--")) {
+      throw new Error(`--${name} requires a value`);
+    }
+    return value;
+  }
+
+  return fallback;
+}
+
+function positionalText(args) {
+  const parts = [];
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg.startsWith("--")) {
+      if (!arg.includes("=")) i += 1;
+      continue;
+    }
+    parts.push(arg);
+  }
+  return parts.join(" ").trim();
+}
+
+function evolve(args) {
+  const root = readOption(args, "root", process.cwd());
+  const lang = readOption(args, "lang", "zh");
+  const category = readOption(args, "category", "max");
+  const phrase = readOption(args, "phrase", positionalText(args));
+
+  if (!phrase) {
+    throw new Error('evolve requires --phrase "..." or positional phrase text');
+  }
+
+  const phraseDir = resolve(root, ".steady-catch");
+  const phraseFile = resolve(phraseDir, "phrases.local.md");
+  const today = new Date().toISOString().slice(0, 10);
+  const entry = `\n## ${today} - ${category} (${lang})\n\n- ${phrase}\n`;
+
+  mkdirSync(phraseDir, { recursive: true });
+  appendFileSync(phraseFile, entry, "utf8");
+  console.log(`saved ${phraseFile}`);
+}
+
 const args = process.argv.slice(2);
 const command = args[0] && !args[0].startsWith("--") ? args.shift() : "init";
 
-if (command === "help" || command === "--help" || command === "-h") {
-  printHelp();
-} else if (command === "targets") {
-  console.log(targets.join("\n"));
-} else if (command === "init" || command === "rules" || command === "generate") {
-  runGenerator(args);
-} else {
-  console.error(`steady-catch: unknown command "${command}"`);
-  console.error("Run steady-catch help for usage.");
+try {
+  if (command === "help" || command === "--help" || command === "-h") {
+    printHelp();
+  } else if (command === "targets") {
+    console.log(targets.join("\n"));
+  } else if (command === "init" || command === "rules" || command === "generate") {
+    runGenerator(args);
+  } else if (command === "evolve") {
+    evolve(args);
+  } else {
+    console.error(`steady-catch: unknown command "${command}"`);
+    console.error("Run steady-catch help for usage.");
+    process.exit(1);
+  }
+} catch (error) {
+  console.error(`steady-catch: ${error.message}`);
   process.exit(1);
 }
