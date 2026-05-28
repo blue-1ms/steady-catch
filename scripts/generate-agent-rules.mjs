@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { dirname, resolve } from "node:path";
 
 const TARGETS = {
@@ -14,6 +15,13 @@ const TARGETS = {
   continue: ".continue/rules/steady-catch.md",
 };
 
+const GLOBAL_TARGETS = {
+  codex: "~/.codex/AGENTS.md",
+  claude: "~/.claude/CLAUDE.md",
+  gemini: "~/.gemini/GEMINI.md",
+  continue: "~/.continue/rules/steady-catch.md",
+};
+
 const TARGET_ALIASES = {
   "claude-code": "claude",
   "github-copilot": "copilot",
@@ -22,6 +30,8 @@ const TARGET_ALIASES = {
 
 const VALID_MODES = new Set(["light", "classic", "max"]);
 const VALID_LANGS = new Set(["auto", "zh", "en", "bilingual"]);
+const MANAGED_START = "<!-- steady-catch:start -->";
+const MANAGED_END = "<!-- steady-catch:end -->";
 
 function addTargets(options, rawTargets) {
   const names = rawTargets
@@ -41,6 +51,7 @@ function parseArgs(argv) {
   const options = {
     all: false,
     dryRun: false,
+    global: false,
     root: process.cwd(),
     mode: "classic",
     lang: "auto",
@@ -60,6 +71,7 @@ function parseArgs(argv) {
 
     if (arg === "--all") options.all = true;
     else if (arg === "--dry-run") options.dryRun = true;
+    else if (arg === "--global") options.global = true;
     else if (arg === "--root") options.root = readValue();
     else if (arg.startsWith("--root=")) options.root = arg.slice("--root=".length);
     else if (arg === "--mode") options.mode = readValue();
@@ -80,7 +92,8 @@ function parseArgs(argv) {
   }
 
   options.targets = options.targets.map((target) => target.trim()).filter(Boolean);
-  if (options.all) options.targets = Object.keys(TARGETS);
+  const targetMap = options.global ? GLOBAL_TARGETS : TARGETS;
+  if (options.all) options.targets = Object.keys(targetMap);
   if (options.targets.length === 0) options.targets = ["codex"];
 
   if (!VALID_MODES.has(options.mode)) {
@@ -95,6 +108,16 @@ function parseArgs(argv) {
     throw new Error(`Unknown target(s): ${unknownTargets.join(", ")}. Use one of: ${Object.keys(TARGETS).join(", ")}`);
   }
 
+  const unsupportedGlobalTargets = options.global
+    ? options.targets.filter((target) => !GLOBAL_TARGETS[target])
+    : [];
+  if (unsupportedGlobalTargets.length > 0) {
+    throw new Error(
+      `No file-based global install is known for: ${unsupportedGlobalTargets.join(", ")}. ` +
+        `Use per-project install for those targets, or choose: ${Object.keys(GLOBAL_TARGETS).join(", ")}`
+    );
+  }
+
   return options;
 }
 
@@ -105,11 +128,13 @@ Usage:
   node scripts/generate-agent-rules.mjs --all --mode classic
   node scripts/generate-agent-rules.mjs --target codex,cursor --mode light --dry-run
   node scripts/generate-agent-rules.mjs --ai all --mode classic
+  node scripts/generate-agent-rules.mjs --global --ai all --mode max
 
 Options:
   --all                 Generate every supported target.
   --target <names>      Comma-separated targets: ${Object.keys(TARGETS).join(", ")}.
   --ai <names>          Alias for --target. Accepts "all".
+  --global              Install to known global instruction files: ${Object.keys(GLOBAL_TARGETS).join(", ")}.
   --mode <mode>         light, classic, or max. Default: classic.
   --lang <lang>         auto, zh, en, or bilingual. Default: auto.
   --root <path>         Directory to write into. Default: current working directory.
@@ -137,6 +162,7 @@ Language: ${lang}
 ## Self-Evolution
 
 - If \`.steady-catch/phrases.local.md\` exists, read it before producing classic or max steady-catch style.
+- If \`~/.steady-catch/phrases.global.md\` exists, treat it as the user's global phrase bank.
 - When the user says "记住这个味", "这个更土", "以后多用这种", "save this phrase", or asks the style to evolve, treat the phrase as a candidate for \`.steady-catch/phrases.local.md\`.
 - Only write local phrases when the user clearly opts in. Keep self-evolution silly and consensual, not sensitive or harmful.
 - In max mode, prefer locally saved phrases and increasingly 土味 phrasing while keeping the useful answer intact.
@@ -181,20 +207,62 @@ Apply this only when the prompt asks for the style. Normal code completions and 
   return rule;
 }
 
-function writeTarget(target, options) {
+function expandHome(filePath) {
+  if (filePath === "~") return homedir();
+  if (filePath.startsWith("~/")) return resolve(homedir(), filePath.slice(2));
+  return filePath;
+}
+
+function managedContent(content) {
+  return `${MANAGED_START}\n${content.trim()}\n${MANAGED_END}\n`;
+}
+
+function mergeManagedBlock(existing, block) {
+  const pattern = new RegExp(`${MANAGED_START}[\\s\\S]*?${MANAGED_END}\\n?`);
+  if (pattern.test(existing)) {
+    return existing.replace(pattern, block);
+  }
+
+  const prefix = existing.trimEnd();
+  return `${prefix}${prefix ? "\n\n" : ""}${block}`;
+}
+
+function destinationForTarget(target, options) {
+  if (options.global) {
+    return {
+      label: GLOBAL_TARGETS[target],
+      path: expandHome(GLOBAL_TARGETS[target]),
+    };
+  }
+
   const relativePath = TARGETS[target];
-  const absolutePath = resolve(options.root, relativePath);
+  return {
+    label: relativePath,
+    path: resolve(options.root, relativePath),
+  };
+}
+
+function writeTarget(target, options) {
+  const destination = destinationForTarget(target, options);
   const content = renderForTarget(target, options);
+  const output = options.global ? managedContent(content) : content;
 
   if (options.dryRun) {
-    console.log(`--- ${relativePath} ---`);
-    console.log(content);
+    console.log(`--- ${destination.label} ---`);
+    console.log(output);
     return;
   }
 
-  mkdirSync(dirname(absolutePath), { recursive: true });
-  writeFileSync(absolutePath, content, "utf8");
-  console.log(`wrote ${relativePath}`);
+  mkdirSync(dirname(destination.path), { recursive: true });
+
+  if (options.global && existsSync(destination.path)) {
+    const existing = readFileSync(destination.path, "utf8");
+    writeFileSync(destination.path, mergeManagedBlock(existing, output), "utf8");
+  } else {
+    writeFileSync(destination.path, output, "utf8");
+  }
+
+  console.log(`wrote ${destination.label}`);
 }
 
 try {

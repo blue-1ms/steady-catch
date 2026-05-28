@@ -79,10 +79,26 @@ For direct max-mode installation / 直接安装 max 模式：
 npx --yes github:blue-1ms/steady-catch init --ai all --mode max
 ```
 
+For global max-mode installation / 全局安装 max 模式：
+
+```bash
+npx --yes github:blue-1ms/steady-catch init --global --ai all --mode max
+```
+
+Global installs are limited to known file-based global instruction targets: `codex`, `claude`, `gemini`, and `continue`. Use project-level install for other assistants.
+
+全局安装只覆盖已知文件型全局规则目标：`codex`、`claude`、`gemini`、`continue`。其他工具使用项目级安装。
+
 For local phrase evolution / 本地土味进化：
 
 ```bash
 npx --yes github:blue-1ms/steady-catch evolve --phrase "稳的，这波我原地接住。" --lang zh --category max
+```
+
+For global phrase evolution / 全局土味进化：
+
+```bash
+npx --yes github:blue-1ms/steady-catch evolve --global --phrase "稳的，这波我全局接住。" --lang zh --category max
 ```
 
 ## Output Shape / 输出形状

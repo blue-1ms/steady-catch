@@ -51,6 +51,32 @@ npx --yes github:blue-1ms/steady-catch init --ai cursor --mode max
 
 `max` 是土味拉满模式：适合 demo、截图、整活；严肃任务仍会降级成可靠回答。
 
+Global max install for file-based global assistants:
+
+```bash
+npx --yes github:blue-1ms/steady-catch init --global --ai all --mode max
+```
+
+全局安装 max 模式：
+
+```bash
+npx --yes github:blue-1ms/steady-catch init --global --ai all --mode max
+```
+
+Global install currently writes managed blocks for `codex`, `claude`, `gemini`, and `continue`. Other assistants should use per-project install or their app-level custom-instructions UI.
+
+全局安装目前只写入已知文件型全局规则：`codex`、`claude`、`gemini`、`continue`。其他工具建议用项目级安装，或去对应 App 的自定义规则设置里粘贴。
+
+If you want your friend to ask their own agent to do it, send:
+
+```text
+请全局安装 steady-catch 的 max 模式。运行：
+
+npx --yes github:blue-1ms/steady-catch init --global --ai all --mode max
+
+安装后告诉我写入了哪些全局规则文件。不要覆盖无关内容。
+```
+
 ## Quick Start
 
 ### English
@@ -131,7 +157,28 @@ Generate only selected targets:
 node scripts/steady-catch.mjs init --ai codex,cursor,claude --mode light
 ```
 
-### 3. GitHub npx Install
+### 3. Global Rules
+
+**English:** Best when you want the style available across projects for agents with known file-based global instruction paths.
+
+**中文：** 如果你希望在多个项目里都能用，并且目标工具有明确的全局规则文件，用这个。
+
+```bash
+npx --yes github:blue-1ms/steady-catch init --global --ai all --mode max
+```
+
+Supported global targets:
+
+| Target | Global file |
+| --- | --- |
+| `codex` | `~/.codex/AGENTS.md` |
+| `claude` | `~/.claude/CLAUDE.md` |
+| `gemini` | `~/.gemini/GEMINI.md` |
+| `continue` | `~/.continue/rules/steady-catch.md` |
+
+Global installs use a managed Markdown block, so re-running the command updates only the `steady-catch` section.
+
+### 4. GitHub npx Install
 
 **English:** Use this when you do not want to clone the repository first.
 
@@ -147,7 +194,7 @@ Dry-run first:
 npx github:blue-1ms/steady-catch init --ai all --dry-run
 ```
 
-### 4. Manual Copy
+### 5. Manual Copy
 
 **English:** Copy the rule content from `scripts/generate-agent-rules.mjs --dry-run` into your assistant's custom-instructions file.
 
@@ -222,12 +269,24 @@ Add a local phrase:
 npx --yes github:blue-1ms/steady-catch evolve --phrase "稳的，这波我原地接住，顺手给你安排明白。" --lang zh --category max
 ```
 
+Add a global phrase:
+
+```bash
+npx --yes github:blue-1ms/steady-catch evolve --global --phrase "稳的，这波我全局接住，走哪儿都带着这个味。" --lang zh --category max
+```
+
 **中文：** 这个 skill 可以按项目越用越土。生成出来的规则会读取 `.steady-catch/phrases.local.md`，所以每个项目都能积累自己的本地土味词库。
 
 添加一条本地土味：
 
 ```bash
 npx --yes github:blue-1ms/steady-catch evolve --phrase "稳的，这波我原地接住，顺手给你安排明白。" --lang zh --category max
+```
+
+添加一条全局土味：
+
+```bash
+npx --yes github:blue-1ms/steady-catch evolve --global --phrase "稳的，这波我全局接住，走哪儿都带着这个味。" --lang zh --category max
 ```
 
 When users say things like "记住这个味", "这个更土", "以后多用这种", or "save this phrase", the agent should treat it as a candidate for the local phrase pack.

@@ -10,6 +10,10 @@ Steady Catch should get more locally flavored over time, but only through opt-in
 
 Steady Catch 可以越用越接地气，但必须是用户主动给信号。不要假装有长期记忆。用户明确说要记住、保存、进化、以后多用时，把项目本地词库写到 `.steady-catch/phrases.local.md`。
 
+Use `~/.steady-catch/phrases.global.md` only when the user asks for global evolution.
+
+只有当用户明确要求全局进化时，才写入 `~/.steady-catch/phrases.global.md`。
+
 ## Local Phrase Pack Format
 
 Use this format:
@@ -36,9 +40,15 @@ With `npx`:
 npx --yes github:blue-1ms/steady-catch evolve --phrase "稳的，这波我原地接住。" --lang zh --category max
 ```
 
+Add a global phrase:
+
+```bash
+npx --yes github:blue-1ms/steady-catch evolve --global --phrase "稳的，这波我全局接住。" --lang zh --category max
+```
+
 ## Agent Behavior
 
-When `.steady-catch/phrases.local.md` exists, read it before generating `classic` or `max` style. Prefer local phrases over bundled phrases when the user asks for the team's own flavor.
+When `.steady-catch/phrases.local.md` exists, read it before generating `classic` or `max` style. When `~/.steady-catch/phrases.global.md` exists, read it as the user's global phrase bank. Prefer project-local phrases over global phrases, and global phrases over bundled phrases.
 
 When the user says "这个味对", "记住这个", "以后多用这种", "更土一点", or "save this phrase", ask briefly if needed, then append the phrase to the local pack.
 

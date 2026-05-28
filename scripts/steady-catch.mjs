@@ -2,12 +2,14 @@
 
 import { spawnSync } from "node:child_process";
 import { appendFileSync, mkdirSync } from "node:fs";
+import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const generatorPath = resolve(scriptDir, "generate-agent-rules.mjs");
 const targets = ["codex", "claude", "cursor", "copilot", "windsurf", "gemini", "cline", "continue"];
+const globalTargets = ["codex", "claude", "gemini", "continue"];
 
 function printHelp() {
   console.log(`steady-catch
@@ -17,7 +19,9 @@ Usage:
   steady-catch init --target codex,cursor --mode light --dry-run
   steady-catch init --ai all --mode classic
   steady-catch init --ai all --mode max
+  steady-catch init --global --ai all --mode max
   steady-catch evolve --phrase "稳的，这波我原地接住。" --lang zh --category max
+  steady-catch evolve --global --phrase "稳的，这波我全局接住。"
   steady-catch targets
 
 Commands:
@@ -31,6 +35,7 @@ Options passed to init/rules:
   --all                 Generate every supported target.
   --target <names>      Comma-separated targets: ${targets.join(", ")}.
   --ai <names>          Alias for --target. Accepts "all".
+  --global              Install to global instruction files where file-based global rules are known.
   --mode <mode>         light, classic, or max. Default: classic.
   --lang <lang>         auto, zh, en, or bilingual. Default: auto.
   --root <path>         Directory to write into. Default: current working directory.
@@ -41,6 +46,7 @@ Options passed to evolve:
   --lang <lang>         zh, en, or bilingual. Default: zh.
   --category <name>     signature, classic, max, earthy, follow-up, etc. Default: max.
   --root <path>         Directory containing .steady-catch/. Default: current working directory.
+  --global              Save to ~/.steady-catch/phrases.global.md instead of project-local phrases.
 `);
 }
 
@@ -74,12 +80,17 @@ function readOption(args, name, fallback = null) {
   return fallback;
 }
 
+function hasFlag(args, name) {
+  return args.includes(`--${name}`);
+}
+
 function positionalText(args) {
+  const optionsWithValues = new Set(["--phrase", "--lang", "--category", "--root"]);
   const parts = [];
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
     if (arg.startsWith("--")) {
-      if (!arg.includes("=")) i += 1;
+      if (optionsWithValues.has(arg)) i += 1;
       continue;
     }
     parts.push(arg);
@@ -88,6 +99,7 @@ function positionalText(args) {
 }
 
 function evolve(args) {
+  const isGlobal = hasFlag(args, "global");
   const root = readOption(args, "root", process.cwd());
   const lang = readOption(args, "lang", "zh");
   const category = readOption(args, "category", "max");
@@ -97,8 +109,8 @@ function evolve(args) {
     throw new Error('evolve requires --phrase "..." or positional phrase text');
   }
 
-  const phraseDir = resolve(root, ".steady-catch");
-  const phraseFile = resolve(phraseDir, "phrases.local.md");
+  const phraseDir = isGlobal ? resolve(homedir(), ".steady-catch") : resolve(root, ".steady-catch");
+  const phraseFile = resolve(phraseDir, isGlobal ? "phrases.global.md" : "phrases.local.md");
   const today = new Date().toISOString().slice(0, 10);
   const entry = `\n## ${today} - ${category} (${lang})\n\n- ${phrase}\n`;
 
@@ -114,7 +126,7 @@ try {
   if (command === "help" || command === "--help" || command === "-h") {
     printHelp();
   } else if (command === "targets") {
-    console.log(targets.join("\n"));
+    console.log((args.includes("--global") ? globalTargets : targets).join("\n"));
   } else if (command === "init" || command === "rules" || command === "generate") {
     runGenerator(args);
   } else if (command === "evolve") {
