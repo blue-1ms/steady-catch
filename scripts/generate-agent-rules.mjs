@@ -14,8 +14,28 @@ const TARGETS = {
   continue: ".continue/rules/steady-catch.md",
 };
 
+const TARGET_ALIASES = {
+  "claude-code": "claude",
+  "github-copilot": "copilot",
+  "gemini-cli": "gemini",
+};
+
 const VALID_MODES = new Set(["light", "classic", "max"]);
 const VALID_LANGS = new Set(["auto", "zh", "en", "bilingual"]);
+
+function addTargets(options, rawTargets) {
+  const names = rawTargets
+    .split(",")
+    .map((target) => target.trim())
+    .filter(Boolean);
+
+  if (names.includes("all")) {
+    options.all = true;
+    return;
+  }
+
+  options.targets.push(...names.map((target) => TARGET_ALIASES[target] ?? target));
+}
 
 function parseArgs(argv) {
   const options = {
@@ -46,9 +66,11 @@ function parseArgs(argv) {
     else if (arg.startsWith("--mode=")) options.mode = arg.slice("--mode=".length);
     else if (arg === "--lang") options.lang = readValue();
     else if (arg.startsWith("--lang=")) options.lang = arg.slice("--lang=".length);
-    else if (arg === "--target" || arg === "--targets") options.targets.push(...readValue().split(","));
-    else if (arg.startsWith("--target=")) options.targets.push(...arg.slice("--target=".length).split(","));
-    else if (arg.startsWith("--targets=")) options.targets.push(...arg.slice("--targets=".length).split(","));
+    else if (arg === "--target" || arg === "--targets" || arg === "--ai" || arg === "--ais") addTargets(options, readValue());
+    else if (arg.startsWith("--target=")) addTargets(options, arg.slice("--target=".length));
+    else if (arg.startsWith("--targets=")) addTargets(options, arg.slice("--targets=".length));
+    else if (arg.startsWith("--ai=")) addTargets(options, arg.slice("--ai=".length));
+    else if (arg.startsWith("--ais=")) addTargets(options, arg.slice("--ais=".length));
     else if (arg === "--help" || arg === "-h") {
       printHelp();
       process.exit(0);
@@ -82,10 +104,12 @@ function printHelp() {
 Usage:
   node scripts/generate-agent-rules.mjs --all --mode classic
   node scripts/generate-agent-rules.mjs --target codex,cursor --mode light --dry-run
+  node scripts/generate-agent-rules.mjs --ai all --mode classic
 
 Options:
   --all                 Generate every supported target.
   --target <names>      Comma-separated targets: ${Object.keys(TARGETS).join(", ")}.
+  --ai <names>          Alias for --target. Accepts "all".
   --mode <mode>         light, classic, or max. Default: classic.
   --lang <lang>         auto, zh, en, or bilingual. Default: auto.
   --root <path>         Directory to write into. Default: current working directory.
