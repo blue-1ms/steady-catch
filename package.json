@@ -1,0 +1,14 @@
+{
+  "name": "steady-catch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A playful agent skill for controlled steady-catch AI catchphrase energy.",
+  "bin": {
+    "steady-catch-rules": "./scripts/generate-agent-rules.mjs"
+  },
+  "scripts": {
+    "generate:rules": "node scripts/generate-agent-rules.mjs",
+    "preview:rules": "node scripts/generate-agent-rules.mjs --all --dry-run"
+  }
+}

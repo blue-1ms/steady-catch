@@ -1,0 +1,4 @@
+interface:
+  display_name: "Steady Catch Mode"
+  short_description: "Add controlled AI catchphrase energy."
+  default_prompt: "Use $steady-catch to rewrite this response with classic steady-catch energy."
