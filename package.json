@@ -2,6 +2,7 @@
   "name": "steady-catch",
   "version": "0.1.0",
   "type": "module",
+  "license": "MIT",
   "description": "A bilingual agent skill for controlled steady-catch AI catchphrase energy.",
   "bin": {
     "steady-catch": "./scripts/steady-catch.mjs",
