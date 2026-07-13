@@ -1,16 +1,40 @@
 {
   "name": "steady-catch",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "license": "MIT",
   "description": "A bilingual agent skill for controlled steady-catch AI catchphrase energy.",
+  "homepage": "https://github.com/blue-1ms/steady-catch#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blue-1ms/steady-catch.git"
+  },
+  "bugs": {
+    "url": "https://github.com/blue-1ms/steady-catch/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "agents/",
+    "references/",
+    "scripts/",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md",
+    "README.zh-CN.md",
+    "SKILL.md"
+  ],
   "bin": {
     "steady-catch": "./scripts/steady-catch.mjs",
     "steady-catch-rules": "./scripts/generate-agent-rules.mjs"
   },
   "scripts": {
+    "check": "npm test && npm run validate:skill && npm pack --dry-run",
     "generate:rules": "node scripts/steady-catch.mjs init",
     "preview:rules": "node scripts/steady-catch.mjs init --all --dry-run",
-    "targets": "node scripts/steady-catch.mjs targets"
+    "targets": "node scripts/steady-catch.mjs targets",
+    "test": "node --test",
+    "validate:skill": "node scripts/validate-skill.mjs"
   }
 }

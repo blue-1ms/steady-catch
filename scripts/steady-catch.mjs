@@ -1,96 +1,85 @@
 #!/usr/bin/env node
 
-import { spawnSync } from "node:child_process";
-import { appendFileSync, mkdirSync } from "node:fs";
-import { homedir } from "node:os";
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
-
-const scriptDir = dirname(fileURLToPath(import.meta.url));
-const generatorPath = resolve(scriptDir, "generate-agent-rules.mjs");
-const targets = ["codex", "claude", "cursor", "copilot", "windsurf", "gemini", "cline", "continue"];
-const globalTargets = ["codex", "claude", "gemini", "continue"];
+import {
+  VERSION,
+  addPhrase,
+  doctor,
+  installRules,
+  listPhrases,
+  listTargets,
+  parseRuleArgs,
+  removePhrase,
+  removeRules,
+} from "./lib/steady-catch-core.mjs";
 
 function printHelp() {
-  console.log(`steady-catch
+  console.log(`steady-catch v${VERSION}
 
 Usage:
-  steady-catch init --all --mode classic
-  steady-catch init --target codex,cursor --mode light --dry-run
-  steady-catch init --ai all --mode classic
-  steady-catch init --ai all --mode max
-  steady-catch init --global --ai all --mode max
+  steady-catch init --all --mode max --activation on-request
+  steady-catch update --global --all --mode classic
+  steady-catch remove --target cursor,claude
+  steady-catch doctor --all
   steady-catch evolve --phrase "稳的，这波我原地接住。" --lang zh --category max
-  steady-catch evolve --global --phrase "稳的，这波我全局接住。"
-  steady-catch targets
+  steady-catch evolve --list
+  steady-catch evolve --remove "稳的，这波我原地接住。"
+  steady-catch targets [--global] [--json]
 
 Commands:
-  init       Generate project rule files for IDEs and CLI agents.
-  rules      Alias for init.
-  evolve     Append a local phrase to .steady-catch/phrases.local.md.
-  targets    List supported targets.
-  help       Show this help.
+  init, rules, update       Install or update project/global rule adapters.
+  remove, uninstall        Remove only steady-catch-managed rules.
+  doctor                   Inspect installations, conflicts, and v0.1 leftovers.
+  evolve                   Add, list, or remove opt-in phrases.
+  targets                  List supported rule adapters and paths.
+  help                     Show this help.
 
-Options passed to init/rules:
-  --all                 Generate every supported target.
-  --target <names>      Comma-separated targets: ${targets.join(", ")}.
-  --ai <names>          Alias for --target. Accepts "all".
-  --global              Install to global instruction files where file-based global rules are known.
-  --mode <mode>         light, classic, or max. Default: classic.
-  --lang <lang>         auto, zh, en, or bilingual. Default: auto.
-  --root <path>         Directory to write into. Default: current working directory.
-  --dry-run             Print paths and content without writing files.
+Rule options:
+  --all                    Select all targets available in the scope.
+  --target, --ai <list>    Comma-separated targets or "all".
+  --global                 Use verified file-based global paths.
+  --mode <mode>            light, classic, or max. Default: classic.
+  --lang <lang>            auto, zh, en, or bilingual. Default: auto.
+  --activation <value>     on-request or always. Default: on-request.
+  --root <path>            Project directory. Default: current directory.
+  --dry-run                Preview without writing.
+  --force                  Replace conflicting dedicated steady-catch files.
+  --json                   Print machine-readable results.
 
-Options passed to evolve:
-  --phrase <text>       Phrase to save. Required unless provided as positional text.
-  --lang <lang>         zh, en, or bilingual. Default: zh.
-  --category <name>     signature, classic, max, earthy, follow-up, etc. Default: max.
-  --root <path>         Directory containing .steady-catch/. Default: current working directory.
-  --global              Save to ~/.steady-catch/phrases.global.md instead of project-local phrases.
+Evolve options:
+  --phrase <text>          Phrase to add; positional text is also accepted.
+  --list                   List saved phrases.
+  --remove <text>          Remove one exact phrase.
+  --lang <lang>            zh, en, or bilingual. Default: zh.
+  --category <name>        Short category label. Default: max.
+  --root <path>            Project directory. Default: current directory.
+  --global                 Use ~/.steady-catch/phrases.global.md.
+  --dry-run                Preview without writing.
+  --json                   Print machine-readable results.
 `);
-}
-
-function runGenerator(args) {
-  const result = spawnSync(process.execPath, [generatorPath, ...args], {
-    stdio: "inherit",
-  });
-
-  if (result.error) {
-    console.error(`steady-catch: ${result.error.message}`);
-    process.exit(1);
-  }
-
-  process.exit(result.status ?? 0);
 }
 
 function readOption(args, name, fallback = null) {
   const prefix = `--${name}=`;
   const equalsValue = args.find((arg) => arg.startsWith(prefix));
   if (equalsValue) return equalsValue.slice(prefix.length);
-
   const index = args.indexOf(`--${name}`);
-  if (index !== -1) {
-    const value = args[index + 1];
-    if (!value || value.startsWith("--")) {
-      throw new Error(`--${name} requires a value`);
-    }
-    return value;
-  }
-
-  return fallback;
+  if (index === -1) return fallback;
+  const value = args[index + 1];
+  if (!value || value.startsWith("--")) throw new Error(`--${name} requires a value`);
+  return value;
 }
 
 function hasFlag(args, name) {
   return args.includes(`--${name}`);
 }
 
-function positionalText(args) {
-  const optionsWithValues = new Set(["--phrase", "--lang", "--category", "--root"]);
+function positionalPhrase(args) {
+  const valueOptions = new Set(["--phrase", "--remove", "--lang", "--category", "--root"]);
   const parts = [];
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
     if (arg.startsWith("--")) {
-      if (optionsWithValues.has(arg)) i += 1;
+      if (valueOptions.has(arg)) i += 1;
       continue;
     }
     parts.push(arg);
@@ -98,45 +87,65 @@ function positionalText(args) {
   return parts.join(" ").trim();
 }
 
-function evolve(args) {
-  const isGlobal = hasFlag(args, "global");
-  const root = readOption(args, "root", process.cwd());
-  const lang = readOption(args, "lang", "zh");
-  const category = readOption(args, "category", "max");
-  const phrase = readOption(args, "phrase", positionalText(args));
+function evolveOptions(args) {
+  return {
+    category: readOption(args, "category", "max"),
+    dryRun: hasFlag(args, "dry-run"),
+    global: hasFlag(args, "global"),
+    json: hasFlag(args, "json"),
+    lang: readOption(args, "lang", "zh"),
+    phrase: readOption(args, "phrase", positionalPhrase(args)),
+    root: readOption(args, "root", process.cwd()),
+  };
+}
 
-  if (!phrase) {
-    throw new Error('evolve requires --phrase "..." or positional phrase text');
-  }
-
-  const phraseDir = isGlobal ? resolve(homedir(), ".steady-catch") : resolve(root, ".steady-catch");
-  const phraseFile = resolve(phraseDir, isGlobal ? "phrases.global.md" : "phrases.local.md");
-  const today = new Date().toISOString().slice(0, 10);
-  const entry = `\n## ${today} - ${category} (${lang})\n\n- ${phrase}\n`;
-
-  mkdirSync(phraseDir, { recursive: true });
-  appendFileSync(phraseFile, entry, "utf8");
-  console.log(`saved ${phraseFile}`);
+function printResults(results, json) {
+  const values = Array.isArray(results) ? results : [results];
+  if (json) console.log(JSON.stringify(results, null, 2));
+  else for (const result of values) console.log(`${result.action} ${result.label ?? result.path}`);
 }
 
 const args = process.argv.slice(2);
 const command = args[0] && !args[0].startsWith("--") ? args.shift() : "init";
 
 try {
-  if (command === "help" || command === "--help" || command === "-h") {
+  if (["help", "--help", "-h"].includes(command) || args.includes("--help") || args.includes("-h")) {
     printHelp();
+  } else if (["init", "rules", "generate", "update"].includes(command)) {
+    const options = parseRuleArgs(args);
+    printResults(installRules(options), options.json);
+  } else if (["remove", "uninstall"].includes(command)) {
+    const options = parseRuleArgs(args);
+    printResults(removeRules(options), options.json);
+  } else if (command === "doctor") {
+    const options = parseRuleArgs(args, { defaultAll: true });
+    const results = doctor(options);
+    if (options.json) console.log(JSON.stringify(results, null, 2));
+    else for (const result of results) console.log(`[${result.status}] ${result.target} ${result.label}`);
+    if (results.some((result) => result.status !== "ok")) process.exitCode = 1;
   } else if (command === "targets") {
-    console.log((args.includes("--global") ? globalTargets : targets).join("\n"));
-  } else if (command === "init" || command === "rules" || command === "generate") {
-    runGenerator(args);
+    const unknown = args.filter((arg) => !["--global", "--json"].includes(arg));
+    if (unknown.length) throw new Error(`Unknown argument: ${unknown[0]}`);
+    const results = listTargets({ global: hasFlag(args, "global") });
+    if (hasFlag(args, "json")) console.log(JSON.stringify(results, null, 2));
+    else for (const result of results) console.log(`${result.target}\t${result.path}`);
   } else if (command === "evolve") {
-    evolve(args);
+    const options = evolveOptions(args);
+    if (hasFlag(args, "list")) {
+      const result = listPhrases(options);
+      if (options.json) console.log(JSON.stringify(result, null, 2));
+      else if (result.phrases.length) for (const phrase of result.phrases) console.log(phrase);
+      else console.log(`no phrases saved in ${result.path}`);
+    } else if (readOption(args, "remove")) {
+      options.phrase = readOption(args, "remove");
+      printResults(removePhrase(options), options.json);
+    } else {
+      printResults(addPhrase(options), options.json);
+    }
   } else {
-    console.error(`steady-catch: unknown command "${command}"`);
-    console.error("Run steady-catch help for usage.");
-    process.exit(1);
+    throw new Error(`unknown command "${command}"; run steady-catch help for usage`);
   }
 } catch (error) {
   console.error(`steady-catch: ${error.message}`);
-  process.exit(1);
+  process.exitCode = 1;
 }

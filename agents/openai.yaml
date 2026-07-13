@@ -1,4 +1,6 @@
 interface:
   display_name: "Steady Catch / 稳稳接住"
-  short_description: "Bilingual AI catchphrase mode."
-  default_prompt: "Use $steady-catch to rewrite this response with classic steady-catch / 稳稳接住 energy."
+  short_description: "Controlled bilingual AI catchphrase parody."
+  default_prompt: "Use $steady-catch in classic mode while keeping the useful answer accurate and specific."
+policy:
+  allow_implicit_invocation: true

@@ -1,324 +1,259 @@
-# steady-catch / 稳稳接住模式
+# steady-catch
 
 <p align="center">
-  <img src="https://img.shields.io/badge/MODES-3-555555?style=for-the-badge" alt="3 modes">
-  <img src="https://img.shields.io/badge/TARGETS-8-00A36C?style=for-the-badge" alt="8 targets">
-  <img src="https://img.shields.io/badge/LANGUAGES-ZH%20%2B%20EN-0EA5E9?style=for-the-badge" alt="Chinese and English">
-  <img src="https://img.shields.io/badge/MAX_MODE-%E5%9C%9F%E5%91%B3%E6%8B%89%E6%BB%A1-8B5CF6?style=for-the-badge" alt="Max mode">
-  <img src="https://img.shields.io/badge/SELF_EVOLVING-%E8%B6%8A%E6%9D%A5%E8%B6%8A%E5%9C%9F-FF8A00?style=for-the-badge" alt="Self evolving">
+  <img src="https://img.shields.io/badge/AGENT_SKILLS-COMPATIBLE-00A36C?style=for-the-badge" alt="Agent Skills compatible">
+  <img src="https://img.shields.io/badge/RULE_ADAPTERS-8-0EA5E9?style=for-the-badge" alt="8 rule adapters">
+  <img src="https://img.shields.io/badge/LANGUAGES-ZH%20%2B%20EN-E11D48?style=for-the-badge" alt="Chinese and English">
+  <img src="https://img.shields.io/badge/NODE-%3E%3D18-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node 18 or newer">
+  <a href="https://github.com/blue-1ms/steady-catch/blob/main/LICENSE"><img src="https://img.shields.io/github/license/blue-1ms/steady-catch?style=for-the-badge" alt="MIT license"></a>
   <a href="https://github.com/blue-1ms/steady-catch/stargazers"><img src="https://img.shields.io/github/stars/blue-1ms/steady-catch?style=for-the-badge&logo=github&label=STARS" alt="GitHub stars"></a>
+  <img src="https://img.shields.io/badge/SELF_EVOLVING-CONSENSUALLY-FF8A00?style=for-the-badge" alt="Consensual self evolution">
 </p>
 
-**English:** A playful Agent Skill for controlled AI catchphrase energy: "I've got you", "let me steady this first", and the gently over-empathetic voice people love to roast.
+<p align="center">
+  <strong>English</strong> | <a href="README.zh-CN.md">简体中文</a>
+</p>
 
-**中文：** 一个可控的 AI 梗味 Agent Skill：稳的、我接住这个点、先把它接稳。它不是让 agent 乱油，而是让“AI 味”变成可选择、可降级、可复用的风格层。
+A playful bilingual Agent Skill for controlled AI catchphrase energy: "I've got you", "let me steady this first", "great question", and the overly empathetic assistant voice people love to roast.
 
-This repository is both:
+Steady Catch keeps the joke around the answer, not instead of the answer. It has three intensity modes, explicit safety downgrades, phrase banks that evolve only with consent, and rule adapters for eight popular coding agents.
 
-- a Codex-compatible Agent Skill
-- a small cross-IDE/CLI rule generator for coding assistants
+## Two Ways To Install
 
-这个仓库同时提供：
+Steady Catch v0.2 uses two complementary installation paths:
 
-- 可直接安装的 Codex Agent Skill
-- 面向多种 IDE / CLI agent 的规则文件生成器
+1. **Agent Skill installation** makes `$steady-catch` available on compatible agents. This is the recommended default.
+2. **Rule adapter installation** configures a project or supported global instruction file with a fixed mode and activation policy.
 
-## Max Mode for Friends / 给朋友直接装 Max
+Installing the Skill does not force every response into Max mode. Installing a rule with `--activation always` does.
 
-**English:** Send your friend this command. Run it in the project where they want the agent rules installed:
+## Install The Skill
 
-```bash
-npx --yes github:blue-1ms/steady-catch init --ai all --mode max
-```
+The open [Skills CLI](https://www.skills.sh/docs/cli) detects your agent and installs the standard `SKILL.md` package in the correct location.
 
-Only install for one assistant:
-
-```bash
-npx --yes github:blue-1ms/steady-catch init --ai cursor --mode max
-```
-
-**中文：** 直接把这条发给朋友，让 TA 在项目根目录运行：
+Current project and detected agent:
 
 ```bash
-npx --yes github:blue-1ms/steady-catch init --ai all --mode max
+npx skills add blue-1ms/steady-catch -y
 ```
 
-只给某一个工具装：
+Globally for the detected agent:
 
 ```bash
-npx --yes github:blue-1ms/steady-catch init --ai cursor --mode max
+npx skills add blue-1ms/steady-catch -g -y
 ```
 
-`max` 是土味拉满模式：适合 demo、截图、整活；严肃任务仍会降级成可靠回答。
-
-Global max install for file-based global assistants:
+Globally for every supported agent detected on the machine:
 
 ```bash
-npx --yes github:blue-1ms/steady-catch init --global --ai all --mode max
+npx skills add blue-1ms/steady-catch --all -g -y
 ```
 
-全局安装 max 模式：
-
-```bash
-npx --yes github:blue-1ms/steady-catch init --global --ai all --mode max
-```
-
-Global install currently writes managed blocks for `codex`, `claude`, `gemini`, and `continue`. Other assistants should use per-project install or their app-level custom-instructions UI.
-
-全局安装目前只写入已知文件型全局规则：`codex`、`claude`、`gemini`、`continue`。其他工具建议用项目级安装，或去对应 App 的自定义规则设置里粘贴。
-
-If you want your friend to ask their own agent to do it, send:
+Invoke it explicitly:
 
 ```text
-请全局安装 steady-catch 的 max 模式。运行：
-
-npx --yes github:blue-1ms/steady-catch init --global --ai all --mode max
-
-安装后告诉我写入了哪些全局规则文件。不要覆盖无关内容。
+Use $steady-catch in max mode and keep the technical answer precise.
 ```
 
-## Quick Start
+Natural-language triggers such as `steady-catch max`, `cringe mode`, `synthetic warmth`, or `AI catchphrase mode` also match the Skill description on agents that support implicit invocation.
 
-### English
+## Install Max Rules
 
-Install as a Codex skill:
+Use the repository CLI when you want rule files configured for coding IDEs and CLIs.
+
+Max mode, activated only when requested:
 
 ```bash
-git clone https://github.com/blue-1ms/steady-catch.git ~/.codex/skills/steady-catch
+npx --yes github:blue-1ms/steady-catch init --ai all --mode max --activation on-request
 ```
 
-Use it explicitly:
-
-```text
-Use $steady-catch to rewrite this response in classic steady-catch mode.
-```
-
-Generate rules for the current project:
+Max mode on ordinary eligible replies:
 
 ```bash
-git clone https://github.com/blue-1ms/steady-catch.git
-cd steady-catch
-node scripts/steady-catch.mjs init --ai all --mode classic
+npx --yes github:blue-1ms/steady-catch init --ai all --mode max --activation always
 ```
 
-### 中文
-
-安装为 Codex skill：
+Install supported file-based global rules:
 
 ```bash
-git clone https://github.com/blue-1ms/steady-catch.git ~/.codex/skills/steady-catch
+npx --yes github:blue-1ms/steady-catch init --global --ai all --mode max --activation on-request
 ```
 
-显式调用：
-
-```text
-Use $steady-catch 把这段回答改成 classic 稳稳接住模式。
-```
-
-给当前项目生成多平台规则文件：
+Preview every action without writing:
 
 ```bash
-git clone https://github.com/blue-1ms/steady-catch.git
-cd steady-catch
-node scripts/steady-catch.mjs init --ai all --mode classic
+npx --yes github:blue-1ms/steady-catch init --ai all --mode max --dry-run
 ```
 
-## Installation Options / 安装方式
-
-### 1. Codex Skill
-
-**English:** Best when you want Codex to load the skill by name.
-
-**中文：** 如果你希望 Codex 通过 `$steady-catch` 直接调用，这是最推荐的方式。
+Select individual adapters:
 
 ```bash
-git clone https://github.com/blue-1ms/steady-catch.git ~/.codex/skills/steady-catch
+npx --yes github:blue-1ms/steady-catch init --ai codex,cursor,claude --mode classic
 ```
 
-### 2. Per-Project Rules
+## Activation And Modes
 
-**English:** Best when you want Cursor, Claude Code, Copilot, Windsurf, Gemini CLI, Cline, Continue, or Codex to follow the same opt-in style rule inside a repository.
-
-**中文：** 如果你想让一个项目里的 Cursor、Claude Code、Copilot、Windsurf、Gemini CLI、Cline、Continue、Codex 都能按需使用这个风格，用这个。
-
-```bash
-node scripts/steady-catch.mjs init --ai all --mode classic
-```
-
-Preview without writing files:
-
-```bash
-node scripts/steady-catch.mjs init --ai all --mode classic --dry-run
-```
-
-Generate only selected targets:
-
-```bash
-node scripts/steady-catch.mjs init --ai codex,cursor,claude --mode light
-```
-
-### 3. Global Rules
-
-**English:** Best when you want the style available across projects for agents with known file-based global instruction paths.
-
-**中文：** 如果你希望在多个项目里都能用，并且目标工具有明确的全局规则文件，用这个。
-
-```bash
-npx --yes github:blue-1ms/steady-catch init --global --ai all --mode max
-```
-
-Supported global targets:
-
-| Target | Global file |
+| Setting | Behavior |
 | --- | --- |
-| `codex` | `~/.codex/AGENTS.md` |
-| `claude` | `~/.claude/CLAUDE.md` |
-| `gemini` | `~/.gemini/GEMINI.md` |
-| `continue` | `~/.continue/rules/steady-catch.md` |
+| `--activation on-request` | Default. The configured style appears only after a clear user trigger. |
+| `--activation always` | Applies the configured style to ordinary eligible replies. Safety downgrades still win. |
+| `--mode light` | One small flourish, then normal work. |
+| `--mode classic` | Brief acknowledgement, catchphrase, useful answer, optional tiny closing. |
+| `--mode max` | Obvious parody and extra cheesy phrasing while preserving the useful answer. |
 
-Global installs use a managed Markdown block, so re-running the command updates only the `steady-catch` section.
-
-### 4. GitHub npx Install
-
-**English:** Use this when you do not want to clone the repository first.
-
-**中文：** 如果你不想先 clone 仓库，可以直接从 GitHub 临时运行 CLI。
+Language can be `auto`, `zh`, `en`, or `bilingual`:
 
 ```bash
-npx github:blue-1ms/steady-catch init --ai all --mode classic
+npx --yes github:blue-1ms/steady-catch init --ai cursor --mode max --lang en
 ```
 
-Dry-run first:
+## Rule Adapter Matrix
 
-```bash
-npx github:blue-1ms/steady-catch init --ai all --dry-run
-```
+Project adapters:
 
-### 5. Manual Copy
-
-**English:** Copy the rule content from `scripts/generate-agent-rules.mjs --dry-run` into your assistant's custom-instructions file.
-
-**中文：** 如果你的工具暂时不在支持列表里，可以先 dry-run，把输出复制到该工具的自定义规则文件中。
-
-```bash
-node scripts/generate-agent-rules.mjs --target codex --dry-run
-```
-
-## Supported Targets / 支持目标
-
-| Target | File |
+| Target | Project path |
 | --- | --- |
 | `codex` | `AGENTS.md` |
-| `claude` | `CLAUDE.md` |
+| `claude` | `.claude/rules/steady-catch.md` |
 | `cursor` | `.cursor/rules/steady-catch.mdc` |
 | `copilot` | `.github/copilot-instructions.md` |
-| `windsurf` | `.windsurfrules` |
+| `windsurf` | `.windsurf/rules/steady-catch.md` |
 | `gemini` | `GEMINI.md` |
 | `cline` | `.clinerules/steady-catch.md` |
 | `continue` | `.continue/rules/steady-catch.md` |
 
-List targets:
+Verified file-based global adapters:
 
-```bash
-node scripts/steady-catch.mjs targets
+| Target | Global path |
+| --- | --- |
+| `codex` | `~/.codex/AGENTS.md` |
+| `claude` | `~/.claude/rules/steady-catch.md` |
+| `copilot` | `~/.copilot/copilot-instructions.md` |
+| `windsurf` | `~/.codeium/windsurf/memories/global_rules.md` |
+| `gemini` | `~/.gemini/GEMINI.md` |
+| `cline` | `~/Documents/Cline/Rules/steady-catch.md` |
+
+Cursor global User Rules live in the application settings rather than a reliable file path. Continue documents project rules but not a reliable personal global file. Use global Skill installation or project rules for those two.
+
+Path references: [Codex Skills and AGENTS.md](https://developers.openai.com/codex/skills), [Claude memory and rules](https://code.claude.com/docs/en/memory), [Gemini context files](https://geminicli.com/docs/cli/gemini-md/), and [Continue rules](https://docs.continue.dev/customize/rules).
+
+## Safe Updates And Removal
+
+Shared files use these managed markers:
+
+```markdown
+<!-- steady-catch:start -->
+...
+<!-- steady-catch:end -->
 ```
 
-## Modes / 模式
+Re-running `init` or `update` changes only that block. Dedicated steady-catch files carry a generated marker. Existing unrelated dedicated files cause a conflict instead of being overwritten; `--force` is required to replace one.
 
-| Mode | English | 中文 |
-| --- | --- | --- |
-| `light` | One small wink, then normal useful work. | 只来一句梗味，剩下认真干活。 |
-| `classic` | Default steady-catch flavor. | 默认稳稳接住味。 |
-| `max` | Parody mode for demos and screenshots. | 梗味拉满，适合 demo 和截图。 |
-
-Example:
+Update installed Agent Skills:
 
 ```bash
-node scripts/steady-catch.mjs init --target cursor --mode max
+npx skills update steady-catch -g -y
 ```
 
-## Usage Examples / 使用示例
+Update rule adapters by re-running the desired configuration:
 
-English:
+```bash
+npx --yes github:blue-1ms/steady-catch update --ai all --mode max --activation on-request
+```
+
+Inspect current project rules and v0.1 leftovers:
+
+```bash
+npx --yes github:blue-1ms/steady-catch doctor --all
+```
+
+Remove Agent Skills:
+
+```bash
+npx skills remove steady-catch -g -y
+```
+
+Remove only Steady Catch-managed rule content:
+
+```bash
+npx --yes github:blue-1ms/steady-catch uninstall --all
+```
+
+Exact v0.1 `CLAUDE.md` and `.windsurfrules` outputs migrate automatically to current dedicated paths. Modified or ambiguous legacy files are reported and left untouched.
+
+## Self-Evolving Phrase Banks
+
+Project phrases live in `.steady-catch/phrases.local.md`. Global phrases live in `~/.steady-catch/phrases.global.md`.
+
+Add a phrase:
+
+```bash
+npx --yes github:blue-1ms/steady-catch evolve \
+  --phrase "I've got this with enterprise-grade tenderness." \
+  --lang en \
+  --category max
+```
+
+List and remove phrases:
+
+```bash
+npx --yes github:blue-1ms/steady-catch evolve --list
+npx --yes github:blue-1ms/steady-catch evolve --remove "I've got this with enterprise-grade tenderness."
+```
+
+Phrase priority is project-local, then global, then bundled references. The CLI normalizes duplicate checks and preserves the saved wording.
+
+Agents may save a phrase only after explicit instructions such as `save this phrase` or `use this more often`. Laughter, praise, or `that is the flavor` alone is not write permission.
+
+## Send This To A Friend
+
+Short version:
 
 ```text
-Use $steady-catch to make this PR summary lightly cringe but still useful.
+I found a deeply unnecessary but surprisingly disciplined Agent Skill. It gives your coding agent selectable "I've got you" AI energy without replacing the actual work.
+
+Install it globally:
+npx skills add blue-1ms/steady-catch -g -y
+
+Then say: steady-catch max
 ```
+
+Ask their agent to install the Skill and global Max adapters:
 
 ```text
-Rewrite this support reply in classic steady-catch mode.
+Install Steady Catch globally for every supported agent, then configure the verified file-based global rule adapters in Max mode with on-request activation.
+
+Run:
+npx skills add blue-1ms/steady-catch --all -g -y
+npx --yes github:blue-1ms/steady-catch init --global --ai all --mode max --activation on-request
+
+Report which Skill and rule paths were installed. Preserve all unrelated file content.
 ```
 
-中文：
+## Safety
 
-```text
-Use $steady-catch 把这段报错解释改成 light 接住味，但不要影响技术准确性。
-```
+The bit is opt-in. Medical, legal, financial, self-harm, abuse, security, production incident, credential, and data-loss contexts downgrade to plain direct language. Steady Catch never uses warmth to hide uncertainty, missing tests, incomplete work, or weak evidence.
 
-```text
-把这个 agent 的 system prompt 改成 max 稳稳接住模式，适合发截图玩。
-```
-
-## Self-Evolution / 自我进化
-
-**English:** Steady Catch can evolve per project. Generated rules tell agents to read `.steady-catch/phrases.local.md` when it exists, so each team can collect its own increasingly cheesy catchphrases.
-
-Add a local phrase:
+## Development
 
 ```bash
-npx --yes github:blue-1ms/steady-catch evolve --phrase "稳的，这波我原地接住，顺手给你安排明白。" --lang zh --category max
+npm install
+npm test
+npm run validate:skill
+npm run check
 ```
 
-Add a global phrase:
-
-```bash
-npx --yes github:blue-1ms/steady-catch evolve --global --phrase "稳的，这波我全局接住，走哪儿都带着这个味。" --lang zh --category max
-```
-
-**中文：** 这个 skill 可以按项目越用越土。生成出来的规则会读取 `.steady-catch/phrases.local.md`，所以每个项目都能积累自己的本地土味词库。
-
-添加一条本地土味：
-
-```bash
-npx --yes github:blue-1ms/steady-catch evolve --phrase "稳的，这波我原地接住，顺手给你安排明白。" --lang zh --category max
-```
-
-添加一条全局土味：
-
-```bash
-npx --yes github:blue-1ms/steady-catch evolve --global --phrase "稳的，这波我全局接住，走哪儿都带着这个味。" --lang zh --category max
-```
-
-When users say things like "记住这个味", "这个更土", "以后多用这种", or "save this phrase", the agent should treat it as a candidate for the local phrase pack.
-
-当用户说“记住这个味”“这个更土”“以后多用这种”时，agent 应该把它当成本地词库候选。
-
-## Safety / 边界
-
-**English:** The bit is opt-in. Serious medical, legal, financial, self-harm, security, production-incident, credential, and data-loss contexts should downgrade to plain direct style unless the user explicitly asks for satire after the serious answer is handled.
-
-**中文：** 这个风格必须是自愿开启的。医疗、法律、金融、自伤、安全、生产事故、凭证、数据丢失等严肃场景应该自动降级成直接可靠的回答。先把正事处理完，再决定要不要玩梗。
-
-## Development / 开发
-
-Validate the skill:
-
-```bash
-python3 /path/to/skill-creator/scripts/quick_validate.py .
-```
-
-Preview generated rules:
+Preview adapters:
 
 ```bash
 npm run preview:rules
 ```
 
-The main source files are:
+Machine-readable output is available on `targets`, `init`, `update`, `remove`, and `doctor`:
 
-- `SKILL.md`
-- `references/modes.md`
-- `references/phrases.zh.md`
-- `references/phrases.en.md`
-- `references/evolution.md`
-- `scripts/steady-catch.mjs`
-- `scripts/generate-agent-rules.mjs`
+```bash
+node scripts/steady-catch.mjs targets --json
+node scripts/steady-catch.mjs doctor --all --json
+```
+
+Licensed under the [MIT License](LICENSE).
