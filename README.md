@@ -20,7 +20,7 @@ Steady Catch keeps the joke around the answer, not instead of the answer. It has
 
 ## Two Ways To Install
 
-Steady Catch v0.2 uses two complementary installation paths:
+Steady Catch uses two complementary installation paths:
 
 1. **Agent Skill installation** makes `$steady-catch` available on compatible agents. This is the recommended default.
 2. **Rule adapter installation** configures a project or supported global instruction file with a fixed mode and activation policy.
@@ -93,12 +93,23 @@ npx --yes github:blue-1ms/steady-catch init --ai codex,cursor,claude --mode clas
 
 ## Activation And Modes
 
+### New In v0.3
+
+Once activated, the style continues in the current conversation. Short follow-ups stay short; Max no longer calls for stacked catchphrases or a fixed three-part response.
+
+- `too much` lowers intensity one step; `more cringe` raises it. A named mode overrides this adjustment.
+- `stop the bit` or `steady-catch off` returns to plain language, even with an always preset.
+- Feedback changes the current conversation only. Saving phrases and changing installed settings still require explicit requests.
+- A one-shot rewrite stays scoped to that artifact. New conversations do not inherit unsaved preferences.
+
+The instructions are model-independent. Astra prompted this revision, but installation checks and CLI tests alone do not establish model-specific quality. See [behavioral evaluation cases](evals/conversation.md) for the manual checks.
+
 | Setting | Behavior |
 | --- | --- |
 | `--activation on-request` | Default. The configured style appears only after a clear user trigger. |
 | `--activation always` | Applies the configured style to ordinary eligible replies. Safety downgrades still win. |
 | `--mode light` | One small flourish, then normal work. |
-| `--mode classic` | Brief acknowledgement, catchphrase, useful answer, optional tiny closing. |
+| `--mode classic` | Natural warmth and a relevant catchphrase, without a fixed template. |
 | `--mode max` | Obvious parody and extra cheesy phrasing while preserving the useful answer. |
 
 Language can be `auto`, `zh`, `en`, or `bilingual`:
@@ -156,6 +167,8 @@ npx skills update steady-catch -g -y
 ```
 
 Update rule adapters by re-running the desired configuration:
+
+Updating the Skill alone does not update previously generated rules. Regenerate v0.2 rules to remove their old fixed response structure, then reload the agent session if needed. Manually pasted rules need manual replacement.
 
 ```bash
 npx --yes github:blue-1ms/steady-catch update --ai all --mode max --activation on-request

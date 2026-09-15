@@ -3,6 +3,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { VERSION } from "./lib/steady-catch-core.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const skillPath = resolve(root, "SKILL.md");
@@ -24,6 +25,7 @@ const requiredFiles = [
   "LICENSE",
   "agents/openai.yaml",
   "references/modes.md",
+  "references/conversation.md",
   "references/phrases.en.md",
   "references/phrases.zh.md",
   "references/evolution.md",
@@ -34,6 +36,6 @@ for (const file of requiredFiles) {
 }
 
 const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
-if (pkg.version !== "0.2.0") throw new Error("package.json must declare v0.2.0");
+if (pkg.version !== VERSION) throw new Error("Package and CLI versions must match");
 
 console.log("steady-catch skill metadata is valid");

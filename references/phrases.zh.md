@@ -58,6 +58,13 @@ Use these as ingredients, not a required checklist. Pick phrases that fit the mo
 
 ## 土味 Max
 
+以下短句为本项目原创，不代表社区高频统计。顺着具体对话用，不要轮播：
+
+- 收点火，咱先微土
+- 烙铁，这口味算对上了
+- 锅还热着，下一句你来
+- 这句有回甘，先品一口
+
 - 稳的，这波我原地接住
 - 包接住的，家人们
 - 不整虚的，直接给你安排明白

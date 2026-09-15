@@ -7,8 +7,12 @@ import {
 } from "node:fs";
 import { homedir, platform } from "node:os";
 import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-export const VERSION = "0.2.0";
+export const VERSION = "0.3.0";
+const conversationRules = readFileSync(
+  fileURLToPath(new URL("../../references/conversation.md", import.meta.url)), "utf8",
+).trim();
 export const TARGET_NAMES = [
   "codex",
   "claude",
@@ -236,8 +240,10 @@ Activation: ${activation}
 ## Intensity
 
 - light: one small flourish, then normal work.
-- classic: warm acknowledgement, catchphrase, useful content, tiny closing flourish.
-- max: obvious parody with extra 土味 while preserving the useful answer.
+- classic: natural warmth and a relevant catchphrase; no fixed response template.
+- max: an unmistakably cheesy joke proportionate to the turn; short chats can still be one sentence.
+
+${conversationRules}
 
 ## Safety Downgrade
 

@@ -2,6 +2,16 @@
 
 All notable changes to Steady Catch are documented here.
 
+## [0.3.0] - 2026-09-15
+
+- Conversation-scoped continuity, semantic intensity feedback, immediate exit, and one-shot rewrite scope.
+- Short Max replies with varied contextual humor instead of required phrase stacking.
+- Shared bilingual conversation guidance in the Skill and generated rule adapters.
+- Original short-turn phrase examples and bilingual behavioral evaluation scenarios.
+- Version validation now compares CLI and package metadata instead of hard-coding a release.
+
+中文：连续接话、实时调味、明确退出；Max 可以简短，Skill 与规则适配器共用双语行为指令，并补充人工验收用例。
+
 ## [0.2.0] - 2026-07-13
 
 ### Added

@@ -20,7 +20,7 @@ Steady Catch 把梗放在答案周围，不拿梗代替答案。它提供三档�
 
 ## 两种安装方式
 
-Steady Catch v0.2 使用两条互补的安装路线：
+Steady Catch 使用两条互补的安装路线：
 
 1. **安装 Agent Skill**：让兼容 Agent 可以调用 `$steady-catch`，这是默认推荐方式。
 2. **安装规则适配器**：给项目或支持的全局指令文件固定模式和触发策略。
@@ -93,12 +93,23 @@ npx --yes github:blue-1ms/steady-catch init --ai codex,cursor,claude --mode clas
 
 ## 触发方式和强度
 
+### v0.3 更新
+
+开启后风格在当前对话持续。短聊短接，Max 不再要求堆口头禅或套固定三段式。
+
+- “太土了”降低一档，“更土一点”提高一档；明确指定模式优先。
+- “正常说话”“别玩梗”或 `steady-catch off` 立即退出，包括 always 预设。
+- 调味只影响当前对话。保存词库和修改安装配置仍需明确要求。
+- 单次改写只作用于那份内容，新对话不继承未保存的偏好。
+
+指令保持跨模型通用。Astra 是本次更新的起因，但安装检查和 CLI 测试不能证明某个模型的风格效果。人工验收场景见[多轮对话用例](evals/conversation.md)。
+
 | 设置 | 行为 |
 | --- | --- |
 | `--activation on-request` | 默认值。只有用户明确点名后才使用配置的风格。 |
 | `--activation always` | 普通且适合玩梗的回答也使用该风格，安全降级仍然优先。 |
 | `--mode light` | 最多一句小梗，剩下正常干活。 |
-| `--mode classic` | 短暂接住、口头禅、实用答案、可选的小收尾。 |
+| `--mode classic` | 自然接话，适当带梗，不套固定模板。 |
 | `--mode max` | 明显 parody，土味拉满，但有用内容不能掉。 |
 
 语言可以选择 `auto`、`zh`、`en` 或 `bilingual`：
@@ -156,6 +167,8 @@ npx skills update steady-catch -g -y
 ```
 
 重新运行配置即可更新规则适配器：
+
+只更新 Skill 不会更新之前生成的规则。需要重生成 v0.2 规则，移除旧的固定回答结构，必要时重开 Agent 会话。手动粘贴的旧规则需手动替换。
 
 ```bash
 npx --yes github:blue-1ms/steady-catch update --ai all --mode max --activation on-request

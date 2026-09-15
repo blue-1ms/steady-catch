@@ -1,6 +1,6 @@
 {
   "name": "steady-catch",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "license": "MIT",
   "description": "A bilingual agent skill for controlled steady-catch AI catchphrase energy.",
@@ -17,6 +17,7 @@
   },
   "files": [
     "agents/",
+    "evals/",
     "references/",
     "scripts/",
     "CHANGELOG.md",
